@@ -1,72 +1,33 @@
 import React from 'react';
 import XLSX from 'xlsx';
+import uuid from 'node-uuid'
 
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
-import Table from 'react-bootstrap/Table';
-import Button from 'react-bootstrap/Button';
-	
-class ReconcileButton extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			done: false
+import Nav from 'react-bootstrap/Nav';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+
+import { ResultCard } from './components';
+
+const styles = {
+	header: {
+		normal: {
+			background: '#000000',
+			padding: '0px',
+			position: 'fixed',
+			height: '100%',
 		}
-		this.changeStatus = this.changeStatus.bind(this);
-	}
-
-	changeStatus() {
-		const { done } = this.state;
-		this.setState({
-			done: !done
-		})
-	};
-
-	render() {
-		const { done } = this.state;
-		return (
-			<Button variant={done ? 'success' : 'danger'} onClick={this.changeStatus}>?</Button>
-		);
+	},
+	body: {
+		normal: {
+			position: 'fixed',
+			left: '25%',
+			height: '100%',
+			overflow: 'scroll',
+		}
 	}
 }
-
-class Item extends React.Component {
-	render() {
-		const { entries } = this.props;
-
-		if (entries.length === 0) {
-			return (
-				<span>{'No records found matching criteria'}</span>
-			);
-		};
-
-		return (
-			<Table>
-				<thead>
-					<tr>
-						<th>{'Complete'}</th>
-						<th>{'Student'}</th>
-						<th>{'Account'}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{
-						entries.map((record, i) => {
-							return (
-								<tr key={i}>
-									<td><ReconcileButton/></td>
-									<td>{`${record['Student First']} ${record['Student Last']}`}</td>
-									 <td>{`${record['Account First']} ${record['Account Last']}`}</td>
-								</tr>
-							)
-						})
-					}
-				</tbody>
-			</Table>
-		);
-	}
-}
-
 
 export default class App extends React.Component {
 	constructor(props) {
@@ -109,18 +70,37 @@ export default class App extends React.Component {
 		 * Student Payment Schedule
 		 * Sheets: [ 'SettlementReport', 'ACH', 'Amex', 'Failed Payments' ]
 		 */
-		var raw_payment_settlement = XLSX.readFile('./data/settlement.xlsx', params);
+		var radius_report = XLSX.readFile('./data/settlement.xlsx', params);
+
+		const radius_settlement_params = {
+			range: 1,
+			header: ["", "Payer's Name", "Amount", "Confirmation #", "Last4 CC", "Card Type", "Payment Date", "Recurring", "Customer"],
+		}
+		const radius_settlement_tab = XLSX.utils.sheet_to_json(radius_report.Sheets['SettlementReport'], radius_settlement_params); // from Radius Report
+
+		const radius_ach_params = {
+			range: 1,
+			header: ["", "Payer's Name", "Amount", "Confirmation #", "Last4 CC", "Card Type", "Payment Date", "Recurring", "Customer"],
+		}
+		const radius_ach_tab = XLSX.utils.sheet_to_json(radius_report.Sheets['ACH'], radius_ach_params); // from Radius Report
+
+		const radius_amex_params = {
+			range: 1,
+			header: ["", "Payer's Name", "Amount", "Confirmation #", "Last4 CC", "Card Type", "Payment Date", "Recurring", "Customer"],
+		}
+		const radius_amex_tab = XLSX.utils.sheet_to_json(radius_report.Sheets['Amex'], radius_amex_params); // from Radius Report
+/*
+		const radius_failed_payments_params = {
+			range: 1,
+			header: ["", "Payer's Name", "Amount", "Confirmation #", "Last4 CC", "Card Type", "Payment Date", "Recurring", "Customer"],
+		}
+		const radius_failed_payments_tab = XLSX.utils.sheet_to_json(radius_report.Sheets['Failed Payments'], radius_failed_payments_params); // from Radius Report*/
 
 		/*
 			Extract specific sheets from each workbook (multilple sheets)
 		*/
 		var student_roster_sheet = XLSX.utils.sheet_to_json(raw_student_checklist.Sheets['Student Roster']); // from New Student Checklist
 
-		var settlement_params = {
-			range: 1,
-			header: ["", "Payer's Name", "Amount", "Confirmation #", "Last4 CC", "Card Type", "Payment Date", "Recurring", "Customer"],
-		}
-		var settlement_report_sheet = XLSX.utils.sheet_to_json(raw_payment_settlement.Sheets['SettlementReport'], settlement_params); // from Settlement Report
 
 		/**
 		 * Check for recurring payment setup in settlement sheet
@@ -176,7 +156,12 @@ export default class App extends React.Component {
 		for (var i=0; i<student_roster_sheet.length; i++) {
 			const account_name = __valid__student__record__(student_roster_sheet[i]);
 			if (account_name) {
-				var settlement_record = __find__settlement_record__(account_name['Account Last'].trim().toLowerCase() + ', ' + account_name['Account First'].trim().toLowerCase(), settlement_report_sheet)
+				const lookupKey = account_name['Account Last'].trim().toLowerCase() + ', ' + account_name['Account First'].trim().toLowerCase();
+				const settlement_record = 
+					__find__settlement_record__(lookupKey, radius_settlement_tab) ||
+					__find__settlement_record__(lookupKey, radius_ach_tab) ||
+					__find__settlement_record__(lookupKey, radius_amex_tab);
+
 				if (settlement_record) {
 					// There is a settlement record found.
 					// Check for a recurring payment field
@@ -209,24 +194,62 @@ export default class App extends React.Component {
 		})
 	}
 
+	componentDidMount() {
+		this.__main__();
+	}
+
 	render() {
+		const {
+			NO_ACCOUNT_SETTLEMENT,
+			NO_RECURRING_SETTLEMENT,
+			NO_PAYMENT_FOR_STUDENT,
+		} = this.state;
+
+		[
+			NO_ACCOUNT_SETTLEMENT,
+			NO_RECURRING_SETTLEMENT,
+			NO_PAYMENT_FOR_STUDENT,
+		].forEach((g,i) => {
+			g.forEach((item, idx) => {
+				item.__uuid = uuid();
+			})
+		})
+
 		return (
-			<div>
-				<h1>Math is fun</h1>
-				<button onClick={this.__main__}>{'Run the thing'}</button>
-				<button onClick={this.__reset__}>{'Reset'}</button>
-				<Tabs defaultActiveKey="profile" id="uncontrolled-tab-example">
-				  <Tab eventKey="home" title="No Settlement Record">
-				    <Item entries={this.state.NO_ACCOUNT_SETTLEMENT}/>
-				  </Tab>
-				  <Tab eventKey="profile" title="No Recurring Payment">
-				    <Item entries={this.state.NO_RECURRING_SETTLEMENT}/>
-				  </Tab>
-				  <Tab eventKey="contact" title="Student Missing in Recurring Payment">
-				    <Item entries={this.state.NO_PAYMENT_FOR_STUDENT}/>
-				  </Tab>
-				</Tabs>
-			</div>
+			<Tab.Container defaultActiveKey="account">
+			  <Row>
+			    <Col sm={3} style={styles.header.normal}>
+			      <Nav className="flex-column" justify>
+			      	{[
+						{key: 'account' , title: 'No Settlement Record', data: NO_ACCOUNT_SETTLEMENT },
+						{key: 'recurring', title: 'No Recurring Payment', data: NO_RECURRING_SETTLEMENT },
+						{key: 'payment', title: 'Student Missing in Recurring Payment', data: NO_PAYMENT_FOR_STUDENT }
+					].map((entry, idx)=> {
+						return (
+							<Nav.Item key={entry.key}>
+								<Nav.Link eventKey={entry.key}>{entry.title}</Nav.Link>
+							</Nav.Item>
+						);
+					})}
+			      </Nav>
+			    </Col>
+			    <Col sm={9} style={styles.body.normal}>
+			      <Tab.Content>
+			      	{[
+						{key: 'account' , title: 'No Settlement Record', data: NO_ACCOUNT_SETTLEMENT },
+						{key: 'recurring', title: 'No Recurring Payment', data: NO_RECURRING_SETTLEMENT },
+						{key: 'payment', title: 'Student Missing in Recurring Payment', data: NO_PAYMENT_FOR_STUDENT }
+					].map((entry, idx)=> {
+						return (
+							<Tab.Pane eventKey={entry.key} key={entry.key}>
+							  <ResultCard entries={entry.data} title={entry.title}/>
+							</Tab.Pane>
+						);
+					})}
+			      </Tab.Content>
+			    </Col>
+			  </Row>
+			</Tab.Container>
 		);
 	}
 }
