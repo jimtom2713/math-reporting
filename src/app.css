@@ -1,0 +1,15 @@
+/*
+	Override some bs styles
+*/
+
+.nav-link {
+	color: #ffffff;
+}
+
+.nav-link.active {
+	color: #007bff;
+}
+
+.nav-item {
+	/*border-bottom: 1px solid #ffffff;*/
+}

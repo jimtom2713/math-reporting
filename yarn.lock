@@ -4162,6 +4162,10 @@ node-source-walk@^4.0.0:
   dependencies:
     "@babel/parser" "^7.0.0"
 
+node-uuid@^1.4.8:
+  version "1.4.8"
+  resolved "https://registry.yarnpkg.com/node-uuid/-/node-uuid-1.4.8.tgz#b040eb0923968afabf8d32fb1f17f1167fdab907"
+
 nodeify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/nodeify/-/nodeify-1.0.1.tgz#64ab69a7bdbaf03ce107b4f0335c87c0b9e91b1d"
