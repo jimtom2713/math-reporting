@@ -1,15 +1,73 @@
 /*
 	Override some bs styles
 */
-
 .nav-link {
-	color: #ffffff;
+	color: #000;
 }
 
-.nav-link.active {
-	color: #007bff;
+.nav-link:hover {
+	color: #fff;
 }
 
-.nav-item {
-	/*border-bottom: 1px solid #ffffff;*/
+.selected.nav-item {
+	background: #a7d7c5;
 }
+
+.border-success {
+	border-color: #74b49b!important;
+}
+
+.border-danger {
+	border-color: #900c3f!important;
+}
+
+.btn-success {
+	background-color: #74b49b!important;
+	border-color: #74b49b!important;
+}
+
+.btn-danger {
+	background-color: #900c3f!important;
+	border-color: #900c3f!important;
+}
+
+.btn-outline-primary {
+	color: #5c8d89!important;
+	border-color: #5c8d89!important;
+}
+
+.btn-outline-primary:hover {
+	color: #fff!important;
+	background-color: #5c8d89!important;
+}
+
+.menu {
+	position: fixed;
+	background: #5c8d89;
+	padding: 0px;
+	height: 100%;
+	border-right: 1px solid #fff;
+}
+
+.body {
+	position: fixed;
+	background: #f4f9f4;
+	left: 25%;
+	height: 100%;
+	overflow: scroll;
+}
+
+
+/*
+Greens l -> d
+	#f4f9f4
+	#a7d7c5
+	#74b49b
+	#5c8d89
+*/
+
+/*
+Red
+#900c3f
+*/
+

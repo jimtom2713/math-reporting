@@ -4,6 +4,7 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
+import Collapse from 'react-bootstrap/Collapse'
 
 const styles = {
 	card: {
@@ -25,7 +26,7 @@ const styles = {
 			top: '0px',
 			'zIndex': '10',
 			width: '75%',
-			'background': '#ffffff'
+			'background': '#f4f9f4'
 		}
 	},
 	button: {
@@ -81,7 +82,7 @@ export default class ResultCard extends React.Component {
 					<div>{title}</div>
 					<div>
 						<div style={styles.header.normal}>
-							<div style={{'texAlign': 'center'}}><span style={{'fontSize': '32px'}}>{entries.length}</span></div>
+							<div style={{'textAlign': 'center'}}><span style={{'fontSize': '32px'}}>{entries.length}</span></div>
 							<div>{'Records Found'}</div>
 						</div>
 						<div style={styles.header.normal}>
@@ -105,22 +106,25 @@ export default class ResultCard extends React.Component {
 							if (_complete && _resolveToggle) {
 								return null
 							}
+
 							return (
-								<Card key={i} style={styles.card.normal} border={_complete ? 'success' : 'danger'}>
-										<Card.Header>{`${record['Student First']} ${record['Student Last']}`}</Card.Header>
-									<Card.Body>
-											<Card.Title>{`Account Name: ${record['Account First']} ${record['Account Last']}`}</Card.Title>
-										<ListGroup>
-											{record['Recurring'] && <ListGroupItem><span>{`Recurring: ${record['Recurring']}`}</span></ListGroupItem>}
-											{record['Notes'] && <ListGroupItem>{`Notes: ${record['Notes']}`}</ListGroupItem>}
-										</ListGroup>
-									</Card.Body>
-									<Card.Footer>
-										<Button variant={_complete ? 'success' : 'danger'} onClick={() => { this.changeStatus(record)}}>
-											{_complete ? 'Complete' : 'Resolve'}
-										</Button>
-									</Card.Footer>
-								</Card>
+									<Card key={i} style={styles.card.normal} border={_complete ? 'success' : 'danger'}>
+								<Collapse in={!_complete}>
+										<Card.Body>
+												<Card.Title>{`Account Name: ${record['Account First']} ${record['Account Last']}`}</Card.Title>
+												<Card.Title>{`Student Name: ${record['Student First']} ${record['Student Last']}`}</Card.Title>
+												{record.__failed && <Card.Text>{'Failed Payment'}</Card.Text>}
+												{record.__cash && <Card.Text>{'Cash Payment'}</Card.Text>}
+												{record['Notes'] && <Card.Text>{`Membership Notes: ${record['Notes']}`}</Card.Text>}
+												{record['Recurring'] && <Card.Text>{`Recurring Payment: ${record['Recurring']}`}</Card.Text>}
+										</Card.Body>
+								</Collapse>
+										<Card.Footer>
+											<Button variant={_complete ? 'success' : 'danger'} onClick={() => { this.changeStatus(record)}}>
+												{_complete ? 'Complete' : 'Resolve'}
+											</Button>
+										</Card.Footer>
+									</Card>
 							);
 						})
 					}
