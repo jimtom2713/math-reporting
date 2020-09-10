@@ -21,7 +21,7 @@ const styles = theme => ({
   },
   toolbar: theme.mixins.toolbar,
   icon: {
-  	color: '#003563'
+  	color: '#ef3e33'
   }
 });
 
@@ -39,7 +39,7 @@ class MenuDrawer extends React.Component {
 			>
 			  <div className={classes.toolbar} />
 			  <List>
-			    {['No settlement', 'Failed payments'].map((text, index) => (
+			    {['No settlement'].map((text, index) => (
 			      <ListItem button key={text} selected={selected.key === text} onClick={event => handleMenuSelection(text)}>
 			        <ListItemIcon><LabelIcon className={classes.icon}/></ListItemIcon>
 			        <ListItemText primary={text} />

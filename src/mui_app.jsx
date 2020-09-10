@@ -28,7 +28,7 @@ const styles = theme => ({
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    background: grey[700],
+    background: 'black',
   },
   content: {
     flexGrow: 1,
@@ -47,7 +47,7 @@ const styles = theme => ({
 	},
   button: {
 		margin: theme.spacing.unit,
-		background: '#003563',
+		background: '#ef3e33',
 		color: "white",
 	},
 	leftIcon: {
@@ -62,6 +62,9 @@ const STUDENTS_WITHOUT_EXPECTED_PAYMENTS = [
 			"sienna chan",
 			"lilly campos",
 			"ciaran o'donnell",
+			"roselyn chan",
+			"milo pilkington",
+			"keahi pilkington",
 		];
 
 class ClippedDrawer extends React.Component {
@@ -70,6 +73,7 @@ class ClippedDrawer extends React.Component {
 		this.state = {
 			settlementFile: null,
 			studentFile: null,
+			radiusFile: null,
 			students: [],
 			selectedMenuItem: {
 				key: 'No settlement',
@@ -133,7 +137,7 @@ class ClippedDrawer extends React.Component {
 	}
 
 	checkForCashPayment(record) {
-		if (record["Account First"] && record["Account Last"]) {
+		if (record["Account First"] && record["Account Last"] && record["Recurring"]) {
 			const _cash = new RegExp('cash');
 			return _cash.test(record["Recurring"].toLowerCase());
 		}
@@ -147,8 +151,8 @@ class ClippedDrawer extends React.Component {
 	}
 
 	processStudents() {
-		const {studentFile, settlementFile} = this.state;
-		if (!studentFile || !settlementFile) {
+		const {studentFile, settlementFile, radiusFile} = this.state;
+		if (!studentFile || !settlementFile || !radiusFile) {
 			this.setState(state => ({ open: true }));
 			return;
 		}
@@ -156,8 +160,9 @@ class ClippedDrawer extends React.Component {
 		let students = XLSX.readFile(studentFile.path, {raw: false})
 		students = XLSX.utils.sheet_to_json(students.Sheets['Student Roster']);
 
-		let failedPayments = XLSX.readFile(settlementFile.path, {raw: false})
-		failedPayments = XLSX.utils.sheet_to_json(failedPayments.Sheets['Failed Payments'], {
+		let settlementSheet = XLSX.readFile(settlementFile.path, {raw: false})
+		// let settlementFile = XLSX.readFile(settlementFile.path, {raw: false})
+		const failedPayments = XLSX.utils.sheet_to_json(settlementSheet.Sheets['Failed Payments'], {
 			range: 1,
 			header: [
 				"",
@@ -174,7 +179,7 @@ class ClippedDrawer extends React.Component {
 			]
 		});
 
-		let settlementSheet = XLSX.readFile(settlementFile.path, {raw: false})
+		// let settlementSheet = XLSX.readFile(settlementFile.path, {raw: false})
 		const settlements = XLSX.utils.sheet_to_json(settlementSheet.Sheets['SettlementReport'], {
 			range: 1,
 			header: [
@@ -189,6 +194,9 @@ class ClippedDrawer extends React.Component {
 				"Customer"
 			],
 		});
+
+		let radiusPayments = XLSX.readFile(radiusFile.path, {raw: false});
+		radiusPayments = XLSX.utils.sheet_to_json(radiusFile.Sheets['Sheet1']);
 
 		const radius_ach_tab = XLSX.utils.sheet_to_json(settlementSheet.Sheets['ACH'], {
 			range: 1,
@@ -226,11 +234,15 @@ class ClippedDrawer extends React.Component {
 			s._uuid = uuid();
 			s._ignore = this.ignore(s);
 			s._cash = this.checkForCashPayment(s);
-			console.log(s._cash);
+			s._thirdthing = this.findMatchingRadiusPayments(s, radiusPayments, [settlements, radius_ach_tab, radius_amex_tab]);
 		})
 		this.setState({
 			students
 		})
+	}
+
+	testThird(students, radius_payments, settlement_tabs) {
+		return true;
 	}
 
 	setFile(file, type) {
@@ -281,15 +293,13 @@ class ClippedDrawer extends React.Component {
 
 	render() {
 		const { classes } = this.props;
-		const {settlementFile, studentFile, selectedMenuItem, students, completed} = this.state;
+		const {settlementFile, studentFile, radiusFile, selectedMenuItem, students, completed} = this.state;
 		return (
 		  <div className={classes.root}>
 		    <CssBaseline />
 		    <AppBar position="fixed" className={classes.appBar}>
 		      <Toolbar>
-		        <Typography variant="h6" color="inherit" noWrap>
-		          Mathnasium
-		        </Typography>
+		        <img src="./logo.png"/>
 		        <input
 		          style={{ display: 'none' }}
 		          id="raised-button-file-students"
@@ -317,32 +327,44 @@ class ClippedDrawer extends React.Component {
 		            <CloudUploadIcon className={classes.rightIcon}/>
 		          </Button>
 		        </label>
-		        <Button variant="contained" component="span" className={!settlementFile || !studentFile ? classes.button : classes.uploadComplete} onClick={this.processStudents}>Go</Button>
+		        <input
+		          style={{ display: 'none' }}
+		          id="raised-button-file-radius"
+		          type="file"
+		          onChange={(file) => { return this.setFile(file.target.files[0], 'radiusFile') }}
+		        />
+		        <label htmlFor="raised-button-file-radius">
+		          <Button variant="contained" component="span" className={!radiusFile ? classes.button : classes.uploadComplete}>
+		          	Radius Payments
+		            <CloudUploadIcon className={classes.rightIcon}/>
+		          </Button>
+		        </label>
+		        <Button variant="contained" component="span" className={(!radiusFile || !studentFile || !radiusFile) ? classes.button : classes.uploadComplete} onClick={this.processStudents}>Go</Button>
 		       	{/*<Button variant="contained" component="span" className={classes.uploadComplete} onClick={this.reset}>Reset</Button>*/}
-		        <div>
-		                <Dialog
-		                  open={this.state.open}
-		                  TransitionComponent={this.transition}
-		                  keepMounted
-		                  onClose={this.handleClose}
-		                  aria-labelledby="alert-dialog-slide-title"
-		                  aria-describedby="alert-dialog-slide-description"
-		                >
-		                  <DialogTitle id="alert-dialog-slide-title">
-		                    {"Please upload files"}
-		                  </DialogTitle>
-		                  <DialogContent>
-		                    <DialogContentText id="alert-dialog-slide-description">
-		                      Please upload the student checklist and settlement files first...
-		                    </DialogContentText>
-		                  </DialogContent>
-		                  <DialogActions>
-		                    <Button onClick={this.handleClose} color="primary">
-		                      Agree
-		                    </Button>
-		                  </DialogActions>
-		                </Dialog>
-		              </div>
+				<div>
+					<Dialog
+					  open={this.state.open}
+					  TransitionComponent={this.transition}
+					  keepMounted
+					  onClose={this.handleClose}
+					  aria-labelledby="alert-dialog-slide-title"
+					  aria-describedby="alert-dialog-slide-description"
+					>
+					  <DialogTitle id="alert-dialog-slide-title">
+					    {"Please upload files"}
+					  </DialogTitle>
+					  <DialogContent>
+					    <DialogContentText id="alert-dialog-slide-description">
+					      Please upload the student checklist and settlement files first...
+					    </DialogContentText>
+					  </DialogContent>
+					  <DialogActions>
+					    <Button onClick={this.handleClose} color="primary">
+					      Agree
+					    </Button>
+					  </DialogActions>
+					</Dialog>
+				</div>
 
 
 		      </Toolbar>

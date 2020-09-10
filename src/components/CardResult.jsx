@@ -8,7 +8,6 @@ import CardMedia from '@material-ui/core/CardMedia';
 import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import Collapse from '@material-ui/core/Collapse';
-import Avatar from '@material-ui/core/Avatar';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import red from '@material-ui/core/colors/red';
@@ -31,7 +30,7 @@ const styles = theme => ({
     backgroundColor: grey[100],
   },
   cardNotResolved: {
-    border: `2px solid #003563`,
+    border: `2px solid #ef3e33`,
     backgroundColor: 'inherit',
   },
   media: {
@@ -51,15 +50,9 @@ const styles = theme => ({
   expandOpen: {
     transform: 'rotate(180deg)',
   },
-  avatar: {
-    // backgroundColor: pink[500],
-  },
   chip: {
     backgroundColor: grey[300],
     margin: theme.spacing.unit,
-  },
-  avatarNotResolved: {
-    backgroundColor: red[500],
   },
   divider: {
     margin: '10px 0px',
@@ -124,10 +117,6 @@ class RecipeReviewCard extends React.Component {
             <Typography variant="caption" component="span">
               { item["Notes"] ? `${item["Notes"]}` : 'No student notes'}
             </Typography>
-              {/*<Divider className={classes.divider}/>
-              <Typography variant="caption" component="span">
-              { item["Payment Notes"] ? `${item["Payment Notes"]}` : 'No payment notes'}
-              </Typography>*/}
               <Divider className={classes.divider}/>
               <Typography variant="caption" component="span">
               { item["Recurring"] }

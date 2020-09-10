@@ -1,8 +1,8 @@
 {
-  "name": "my-new-project",
-  "productName": "my-new-project",
+  "name": "reconciliation-tool",
+  "productName": "reconciliation-tool",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Reconciliation tool",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
@@ -32,7 +32,7 @@
         "packageManager": "yarn"
       },
       "electronWinstallerConfig": {
-        "name": "my_new_project"
+        "name": "make_math_fun"
       },
       "electronInstallerDebian": {},
       "electronInstallerRedhat": {},
@@ -42,7 +42,7 @@
       },
       "windowsStoreConfig": {
         "packageName": "",
-        "name": "mynewproject"
+        "name": "make_math_fun"
       }
     }
   },

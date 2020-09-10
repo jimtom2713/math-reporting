@@ -43,6 +43,9 @@ export default class App extends React.Component {
 			"sienna chan",
 			"lilly campos",
 			"ciaran o'donnell",
+			"roselyn chan",
+			"milo pilkington",
+			"keahi pilkington",
 		];
 
 		if (!radius_file && !student_checklist) {
