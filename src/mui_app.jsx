@@ -73,7 +73,6 @@ class ClippedDrawer extends React.Component {
 		this.state = {
 			settlementFile: null,
 			studentFile: null,
-			radiusFile: null,
 			students: [],
 			selectedMenuItem: {
 				key: 'No settlement',
@@ -151,8 +150,8 @@ class ClippedDrawer extends React.Component {
 	}
 
 	processStudents() {
-		const {studentFile, settlementFile, radiusFile} = this.state;
-		if (!studentFile || !settlementFile || !radiusFile) {
+		const {studentFile, settlementFile} = this.state;
+		if (!studentFile || !settlementFile) {
 			this.setState(state => ({ open: true }));
 			return;
 		}
@@ -195,9 +194,6 @@ class ClippedDrawer extends React.Component {
 			],
 		});
 
-		let radiusPayments = XLSX.readFile(radiusFile.path, {raw: false});
-		radiusPayments = XLSX.utils.sheet_to_json(radiusFile.Sheets['Sheet1']);
-
 		const radius_ach_tab = XLSX.utils.sheet_to_json(settlementSheet.Sheets['ACH'], {
 			range: 1,
 			header: [
@@ -234,15 +230,10 @@ class ClippedDrawer extends React.Component {
 			s._uuid = uuid();
 			s._ignore = this.ignore(s);
 			s._cash = this.checkForCashPayment(s);
-			s._thirdthing = this.findMatchingRadiusPayments(s, radiusPayments, [settlements, radius_ach_tab, radius_amex_tab]);
 		})
 		this.setState({
 			students
 		})
-	}
-
-	testThird(students, radius_payments, settlement_tabs) {
-		return true;
 	}
 
 	setFile(file, type) {
@@ -293,7 +284,7 @@ class ClippedDrawer extends React.Component {
 
 	render() {
 		const { classes } = this.props;
-		const {settlementFile, studentFile, radiusFile, selectedMenuItem, students, completed} = this.state;
+		const {settlementFile, studentFile, selectedMenuItem, students, completed} = this.state;
 		return (
 		  <div className={classes.root}>
 		    <CssBaseline />
@@ -327,19 +318,7 @@ class ClippedDrawer extends React.Component {
 		            <CloudUploadIcon className={classes.rightIcon}/>
 		          </Button>
 		        </label>
-		        <input
-		          style={{ display: 'none' }}
-		          id="raised-button-file-radius"
-		          type="file"
-		          onChange={(file) => { return this.setFile(file.target.files[0], 'radiusFile') }}
-		        />
-		        <label htmlFor="raised-button-file-radius">
-		          <Button variant="contained" component="span" className={!radiusFile ? classes.button : classes.uploadComplete}>
-		          	Radius Payments
-		            <CloudUploadIcon className={classes.rightIcon}/>
-		          </Button>
-		        </label>
-		        <Button variant="contained" component="span" className={(!radiusFile || !studentFile || !radiusFile) ? classes.button : classes.uploadComplete} onClick={this.processStudents}>Go</Button>
+		        <Button variant="contained" component="span" className={(!settlementFile || !studentFile) ? classes.button : classes.uploadComplete} onClick={this.processStudents}>Go</Button>
 		       	{/*<Button variant="contained" component="span" className={classes.uploadComplete} onClick={this.reset}>Reset</Button>*/}
 				<div>
 					<Dialog
